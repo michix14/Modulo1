@@ -1,7 +1,11 @@
 ﻿# DataScience API
 
 Proyecto académico con Python, FastAPI y Pandas para explorar, limpiar y analizar datos. Los datos están en una **lista de diccionarios** en `app/datos.py`; no se cargan ni se generan archivos CSV.
-
+## Integrantes Grupo 3
+-Ivan Daniel Aramayo Valeriano 
+-Telassim Ginnola Gomez Jimenez
+-Rene Eduardo Chungara Martínez
+-Michel Albert Cárdenas Carrasco
 ## Ejecutar
 
 Requiere Python 3.12. Desde la carpeta del proyecto, en PowerShell:
