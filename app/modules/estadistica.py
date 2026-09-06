@@ -1,10 +1,11 @@
 from typing import Annotated
 
 import pandas as pd
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
-from app.shared.csv_utils import finite, read_csv
+from app.shared.data_utils import dataframe, finite
+from app.modules.limpieza import MissingStrategy, clean
 
 router = APIRouter(tags=["3. Estadística"])
 
@@ -34,7 +35,7 @@ def summarize(df: pd.DataFrame, columns: str | None) -> dict:
             raise HTTPException(422, "Selecciona únicamente columnas numéricas.")
         selected = selected[names]
     if selected.shape[1] == 0:
-        raise HTTPException(422, "El archivo no contiene columnas numéricas.")
+        raise HTTPException(422, "La lista no contiene columnas numéricas.")
     stats = {}
     for col in selected.columns:
         series = selected[col]
@@ -50,10 +51,11 @@ def summarize(df: pd.DataFrame, columns: str | None) -> dict:
     return {"filas": len(df), "estadisticas": stats}
 
 
-@router.post("/estadistica", response_model=StatisticsResult)
+@router.get("/estadistica", response_model=StatisticsResult)
 def estadistica(
-    archivo: Annotated[UploadFile, File()],
-    columnas: Annotated[str | None, Form(description="Opcional: nombres separados por comas")] = None,
+    columnas: Annotated[str | None, Query(description="Opcional: nombres separados por comas")] = None,
+    estrategia: MissingStrategy = MissingStrategy.conservar,
+    eliminar_duplicados: bool = False,
 ):
     """Ignora nulos por columna. Desviación muestral (n−1), null si n < 2."""
-    return summarize(read_csv(archivo), columnas)
+    return summarize(clean(dataframe(), estrategia, eliminar_duplicados), columnas)

@@ -1,10 +1,10 @@
-from typing import Annotated, Any
+from typing import Any
 
 import pandas as pd
-from fastapi import APIRouter, File, UploadFile
+from fastapi import APIRouter
 from pydantic import BaseModel
 
-from app.shared.csv_utils import read_csv, records
+from app.shared.data_utils import dataframe, records
 
 router = APIRouter(tags=["1. Exploración"])
 
@@ -35,7 +35,7 @@ def explore(df: pd.DataFrame) -> dict:
     }
 
 
-@router.post("/exploracion", response_model=ExplorationResult)
-def explorar(archivo: Annotated[UploadFile, File(description="CSV UTF-8 con cabecera")]):
-    """Inspecciona el archivo sin modificarlo; devuelve hasta cinco filas."""
-    return explore(read_csv(archivo))
+@router.get("/exploracion", response_model=ExplorationResult)
+def explorar():
+    """Inspecciona la lista de ventas y devuelve hasta cinco filas."""
+    return explore(dataframe())

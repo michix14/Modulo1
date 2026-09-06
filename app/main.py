@@ -5,9 +5,8 @@ from app.modules import exploracion, limpieza, estadistica
 
 app = FastAPI(
     title="DataScience API", version="1.0.0",
-    description="Tres módulos: exploración, limpieza y estadística. CSV UTF-8, "
-    "separado por comas, hasta 1 MB, 10.000 filas y 50 columnas. "
-    "Cada petición es independiente; no se conservan los archivos.",
+    description="Exploración, limpieza y estadística de una lista de ventas "
+    "definida en app/datos.py. Cada petición trabaja con una copia de los datos.",
 )
 for module in (exploracion, limpieza, estadistica):
     app.include_router(module.router, prefix="/api")

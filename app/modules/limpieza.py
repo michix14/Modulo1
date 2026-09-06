@@ -1,11 +1,9 @@
 from enum import Enum
-from typing import Annotated
 
 import pandas as pd
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
-from fastapi.responses import Response
+from fastapi import APIRouter, HTTPException
 
-from app.shared.csv_utils import read_csv
+from app.shared.data_utils import dataframe, records
 
 router = APIRouter(tags=["2. Limpieza"])
 
@@ -36,26 +34,21 @@ def clean(df: pd.DataFrame, strategy: MissingStrategy, duplicates: bool) -> pd.D
     return result
 
 
-@router.post("/limpieza", response_class=Response,
-             responses={200: {"content": {"text/csv": {}}, "description": "CSV limpio descargable"}})
+@router.get("/limpieza")
 def limpiar(
-    archivo: Annotated[UploadFile, File()],
-    estrategia: Annotated[MissingStrategy, Form()] = MissingStrategy.conservar,
-    eliminar_duplicados: Annotated[bool, Form()] = True,
+    estrategia: MissingStrategy = MissingStrategy.conservar,
+    eliminar_duplicados: bool = True,
 ):
     """Media/mediana solo rellenan columnas numéricas con datos disponibles.
 
     Los nulos de texto y de columnas totalmente vacías permanecen.
     No se vuelve a deduplicar después de imputar valores.
     """
-    original = read_csv(archivo)
+    original = dataframe()
     result = clean(original, estrategia, eliminar_duplicados)
-    return Response(
-        result.to_csv(index=False).encode("utf-8-sig"), media_type="text/csv",
-        headers={
-            "Content-Disposition": 'attachment; filename="datos_limpios.csv"',
-            "X-Filas-Originales": str(len(original)),
-            "X-Filas-Resultado": str(len(result)),
-            "X-Nulos-Restantes": str(int(result.isna().sum().sum())),
-        },
-    )
+    return {
+        "filas_originales": len(original),
+        "filas_resultado": len(result),
+        "nulos_restantes": int(result.isna().sum().sum()),
+        "datos": records(result),
+    }
